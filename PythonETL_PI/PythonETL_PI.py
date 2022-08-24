@@ -14,6 +14,7 @@ callTranslator = False  # Keep false unless required (implies in costs from Goog
 callTermMatchingDrugBank = False # Keep false unless required (implies in high computation time) [Requires exp_csv_DrugBank_Anvisa]
 callTermMatchingKEGGDrug = False # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_Anvisa]
 callKEGGDrugModule = False
+callTermMatchingKEGGDrugDrugBank = True # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_DrugBank]
 mode_DrugBank_OR_KEGGDrug = 'kegg' # for KEGG Drug: 'kegg', for DrugBank: 'drugbank'  (imply in BigTable only)
 prodEnvironment = True # False for "development/test"; true for "production" execution
 silent = False          # Display track of progress info (when False)
@@ -42,6 +43,7 @@ exp_csv_KEGG_Drugs = r"..\Exported\exp_csv_KEGG_Drugs.csv"
 exp_csv_KEGG_DrugsSynonyms = r"..\Exported\exp_csv_KEGG_DrugsSynonyms.csv"
 exp_csv_KEGG_Interaction = r"..\Exported\exp_csv_KEGG_Interaction.csv"
 exp_csv_KEGGDrug_Anvisa = r"..\Exported\exp_csv_KEGGDrug_Anvisa.csv" # REQUIRED When callTermMatchingKEGGDrug is False
+exp_csv_KEGGDrug_DrugBank = r"..\Exported\exp_csv_KEGGDrug_DrugBank.csv"
 exp_csv_ComputingTime = r"..\Exported\exp_csv_ComputingTime.csv"
 
 timeTracker = utils.TimeTracker(exp_csv_ComputingTime)
@@ -467,6 +469,22 @@ else:
     if not silent: print(strSubject) 
     timeTracker.note(strSubject,'start')
     df_KEGGDrug_Anvisa = pd.read_csv(exp_csv_KEGGDrug_Anvisa, sep=',')
+    timeTracker.note(strSubject,'end')
+
+
+# Nomenclature Pair Matching Module Call - KEGGDrug + DrugBank
+if callTermMatchingKEGGDrugDrugBank:
+    strSubject = 'KEGG Drug + DrugBank - Calling Term Matching Module (With Synonyms)'
+    if not silent: print(strSubject) 
+    timeTracker.note(strSubject,'start')
+    df_KEGGDrug_DrugBank = TermMatchingModule.match(df_KEGG_drugsSynonyms['name'], df_KEGG_drugsSynonyms['keggdrug-id'], df_drugsSynonyms['name'], df_drugsSynonyms['drugbank-id'], 'keggdrug-drugbank')
+    df_KEGGDrug_DrugBank.to_csv(exp_csv_KEGGDrug_DrugBank, index = False)
+    timeTracker.note(strSubject,'end')
+else:
+    strSubject = 'KEGG Drug + DrugBank - Loading Preprocessed Term Matching'
+    if not silent: print(strSubject) 
+    timeTracker.note(strSubject,'start')
+    df_KEGGDrug_DrugBank = pd.read_csv(exp_csv_KEGGDrug_DrugBank, sep=',')
     timeTracker.note(strSubject,'end')
 
 

@@ -108,6 +108,11 @@ def match(data1_Names : pd.Series, data1_Ids : pd.Series, data2_Names : pd.Serie
 		df_return = pd.DataFrame(returnDataFrame, columns=['id_pAtivo','name_anvisa','drugbank-id','name_drugbank','matchingValue'])
 	elif mode=='keggdrug':
 		df_return = pd.DataFrame(returnDataFrame, columns=['id_pAtivo','name_anvisa','keggdrug-id','keggdrug_nome','matchingValue'])
+	elif mode=='keggdrug-drugbank':
+		df_return = pd.DataFrame(returnDataFrame, columns=['keggdrug-id','keggdrug_nome','drugbank-id','name_drugbank','matchingValue'])
+	else:
+		print('Unexpected error: Unknown condition when calling TermMatching Module.')
+		exit(1)
 
 	return df_return
 
