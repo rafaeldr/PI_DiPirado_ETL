@@ -30,6 +30,9 @@
     <Compile Include="KEGGDrugModule.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="KEGGDrug_DrugBankAnalysisModule.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PythonETL_PI.py" />
     <Compile Include="SQLModule.py">
       <SubType>Code</SubType>
