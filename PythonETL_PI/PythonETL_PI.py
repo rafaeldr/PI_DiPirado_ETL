@@ -8,27 +8,36 @@ import TermMatchingModule
 import SQLModule as sql
 import KEGGDrugModule
 import utils
+import os
 
 # Parameters
 callTranslator = False  # Keep false unless required (implies in costs from GoogleCloud)
-callTermMatchingDrugBank = False # Keep false unless required (implies in high computation time) [Requires exp_csv_DrugBank_Anvisa]
-callTermMatchingKEGGDrug = False # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_Anvisa]
-callKEGGDrugModule = False
+callTermMatchingDrugBank = True # Keep false unless required (implies in high computation time) [Requires exp_csv_DrugBank_Anvisa]
+callTermMatchingKEGGDrug = True # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_Anvisa]
+callKEGGDrugModule = True
 callTermMatchingKEGGDrugDrugBank = True # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_DrugBank]
 mode_DrugBank_OR_KEGGDrug = 'kegg' # for KEGG Drug: 'kegg', for DrugBank: 'drugbank'  (imply in BigTable only)
-prodEnvironment = True # False for "development/test"; true for "production" execution
+prodEnvironment = False # False for "development/test"; true for "production" execution
 silent = False          # Display track of progress info (when False)
 TermMatchingModule.silent = silent
 TranslationModule.silent = silent
 
 # File locations
-anvisa_file = r"..\DataSources\data_anvisa.csv"
 if prodEnvironment:
     drugbank_file = r"..\DataSources\full database.xml"    # Full DrugBank - Takes ~6 min to parse
+    KEGGDrugModule.file = r"..\DataSources\drug"
+    anvisa_file = r"..\DataSources\data_anvisa.csv"
+    exp_csv_pAtivos_Traducoes = r"..\Exported\exp_csv_pAtivos_Traducoes.csv"
 else:
     drugbank_file = r"..\DataSources\drugbank_sample6.xml"  # Sample DrugBank with only 6 drugs
-KEGGDrugModule.file = r"..\DataSources\drug"
+    KEGGDrugModule.file = r"..\DataSources\drug_sample"
+    anvisa_file = r"..\DataSources\data_anvisa_sample.csv"
+    exp_csv_pAtivos_Traducoes = r"..\DataSources\exp_csv_pAtivos_Traducoes_sample.csv"
 # Export
+isExist = os.path.exists(r"..\Scripts")
+if not isExist: os.makedirs(r"..\Scripts")
+isExist = os.path.exists(r"..\Exported")
+if not isExist: os.makedirs(r"..\Exported")
 exp_csv_drugs = r"..\Exported\exp_csv_drugs.csv"
 exp_csv_drugsSynonyms = r"..\Exported\exp_csv_drugsSynonyms.csv"
 exp_csv_interactions = r"..\Exported\exp_csv_interactions.csv"
@@ -36,14 +45,13 @@ exp_csv_pAtivos = r"..\Exported\exp_csv_pAtivos.csv"
 exp_csv_pAtivosAccented = r"..\Exported\exp_csv_pAtivosAccented.csv"
 exp_csv_Nomes = r"..\Exported\exp_csv_Nomes.csv"
 exp_csv_Nomes_pAtivos = r"..\Exported\exp_csv_Nomes_pAtivos.csv"
-exp_csv_pAtivos_Traducoes = r"..\Exported\exp_csv_pAtivos_Traducoes.csv"
 exp_csv_Analysis_Nomes_pAtivos = r"..\Exported\exp_csv_Analysis_Nomes_pAtivos.csv"
 exp_csv_DrugBank_Anvisa = r"..\Exported\exp_csv_DrugBank_Anvisa.csv" # REQUIRED When callTermMatchingDrugBank is False
 exp_csv_KEGG_Drugs = r"..\Exported\exp_csv_KEGG_Drugs.csv"
 exp_csv_KEGG_DrugsSynonyms = r"..\Exported\exp_csv_KEGG_DrugsSynonyms.csv"
 exp_csv_KEGG_Interaction = r"..\Exported\exp_csv_KEGG_Interaction.csv"
 exp_csv_KEGGDrug_Anvisa = r"..\Exported\exp_csv_KEGGDrug_Anvisa.csv" # REQUIRED When callTermMatchingKEGGDrug is False
-exp_csv_KEGGDrug_DrugBank = r"..\Exported\exp_csv_KEGGDrug_DrugBank.csv"
+exp_csv_KEGGDrug_DrugBank = r"..\Exported\exp_csv_KEGGDrug_DrugBank.csv" # REQUIRED When callTermMatchingKEGGDrugDrugBank is False
 exp_csv_ComputingTime = r"..\Exported\exp_csv_ComputingTime.csv"
 
 timeTracker = utils.TimeTracker(exp_csv_ComputingTime)
@@ -283,60 +291,61 @@ if not silent: print()
 
 # Manual Cleanup Section (after visual inspection)
 
-if not silent: print('ANVISA - Executing Cleanup Procedures') 
-# 1. Renaming
-dictPrinciples['HIDROBROMETO DE CITALOPRAM'] = dictPrinciples.pop('HIDROBROMETO DE CITALOPRAM (PORT. 344/98 LISTA C 1)')
-dictPrinciplesAccented['HIDROBROMETO DE CITALOPRAM'] = dictPrinciplesAccented.pop('HIDROBROMETO DE CITALOPRAM (PORT. 344/98 LISTA C 1)')
-dictPrinciples['OXANDROLONA'] = dictPrinciples.pop('OXANDROLONA (PORT. 344/98 LISTA C 5)')
-dictPrinciplesAccented['OXANDROLONA'] = dictPrinciplesAccented.pop('OXANDROLONA (PORT. 344/98 LISTA C 5)')
+if prodEnvironment:
+    if not silent: print('ANVISA - Executing Cleanup Procedures') 
+    # 1. Renaming
+    dictPrinciples['HIDROBROMETO DE CITALOPRAM'] = dictPrinciples.pop('HIDROBROMETO DE CITALOPRAM (PORT. 344/98 LISTA C 1)')
+    dictPrinciplesAccented['HIDROBROMETO DE CITALOPRAM'] = dictPrinciplesAccented.pop('HIDROBROMETO DE CITALOPRAM (PORT. 344/98 LISTA C 1)')
+    dictPrinciples['OXANDROLONA'] = dictPrinciples.pop('OXANDROLONA (PORT. 344/98 LISTA C 5)')
+    dictPrinciplesAccented['OXANDROLONA'] = dictPrinciplesAccented.pop('OXANDROLONA (PORT. 344/98 LISTA C 5)')
 
-# 2. Change Codes and Delete
-change_dict = {3739 : 23, 2974 : 23, 1331 : 23, 1843 : 1873, 1299 : 639, 571 : 570,
-               3872 : 2962, 1180 : 211, 2610 : 2450, 3404 : 1761, 1387 : 414, 2603 : 768, 
-               2723 : 1994, 2561 : 17, 2727 : 311, 1974 : 19, 3561 : 105, 3821 : 105, 3210 : 2924, 
-               3215 : 1239, 3782 : 169, 1837 : 37, 2928 : 20, 1424 : 20, 2716 : 1256, 3417 : 1256, 
-               9 : 1265, 3061 : 1938, 1714 : 1487, 2607 : 416, 2040 : 501, 418 : 501, 3687 : 501, 
-               2046 : 3397, 2350 : 2944}
+    # 2. Change Codes and Delete
+    change_dict = {3739 : 23, 2974 : 23, 1331 : 23, 1843 : 1873, 1299 : 639, 571 : 570,
+                   3872 : 2962, 1180 : 211, 2610 : 2450, 3404 : 1761, 1387 : 414, 2603 : 768, 
+                   2723 : 1994, 2561 : 17, 2727 : 311, 1974 : 19, 3561 : 105, 3821 : 105, 3210 : 2924, 
+                   3215 : 1239, 3782 : 169, 1837 : 37, 2928 : 20, 1424 : 20, 2716 : 1256, 3417 : 1256, 
+                   9 : 1265, 3061 : 1938, 1714 : 1487, 2607 : 416, 2040 : 501, 418 : 501, 3687 : 501, 
+                   2046 : 3397, 2350 : 2944}
 
-change_list = [3739, 2974, 1331, 1843, 1299, 571, 3872, 1180, 2610, 3404,
-               1387, 2603, 2723, 2561, 2727, 1974, 3561, 3821, 3210, 3215,
-               3782, 1837, 2928, 1424, 2716, 3417, 9, 3061, 1714, 2607,
-               2040, 418, 3687, 2046, 2350]
+    change_list = [3739, 2974, 1331, 1843, 1299, 571, 3872, 1180, 2610, 3404,
+                   1387, 2603, 2723, 2561, 2727, 1974, 3561, 3821, 3210, 3215,
+                   3782, 1837, 2928, 1424, 2716, 3417, 9, 3061, 1714, 2607,
+                   2040, 418, 3687, 2046, 2350]
 
-# Adjust relationship
-for item in reversed(list_Names_Principles):
-    if item[1] in change_list:  #[0] 'idProduto' [1] 'idPrincipio'
-        item_temp = list(item)
-        item_temp[1] = change_dict[item_temp[1]]
-        item_temp = tuple(item_temp)
-        list_Names_Principles.remove(item)
-        # Needs to check if the "new relation" doesn't already exist (with the other id)
-        if item_temp not in list_Names_Principles:
-            list_Names_Principles.append(item_temp)
+    # Adjust relationship
+    for item in reversed(list_Names_Principles):
+        if item[1] in change_list:  #[0] 'idProduto' [1] 'idPrincipio'
+            item_temp = list(item)
+            item_temp[1] = change_dict[item_temp[1]]
+            item_temp = tuple(item_temp)
+            list_Names_Principles.remove(item)
+            # Needs to check if the "new relation" doesn't already exist (with the other id)
+            if item_temp not in list_Names_Principles:
+                list_Names_Principles.append(item_temp)
 
-# Remove principle
-for item in change_list:
-    idx_number = item
-    key_value = list(dictPrinciples.keys())[list(dictPrinciples.values()).index(idx_number)]
-    del dictPrinciples[key_value]
-    key_value = list(dictPrinciplesAccented.keys())[list(dictPrinciplesAccented.values()).index(idx_number)]
-    del dictPrinciplesAccented[key_value] 
+    # Remove principle
+    for item in change_list:
+        idx_number = item
+        key_value = list(dictPrinciples.keys())[list(dictPrinciples.values()).index(idx_number)]
+        del dictPrinciples[key_value]
+        key_value = list(dictPrinciplesAccented.keys())[list(dictPrinciplesAccented.values()).index(idx_number)]
+        del dictPrinciplesAccented[key_value] 
 
-# 3. Just Delete
-delete_list = [3954, 3878, 3867, 3823, 3799, 3727, 3472, 3396, 3348, 3284, 2751, 
-               2742, 2665, 2562, 2418, 2156, 2115, 1977, 1739, 1610, 936, 632, 1281]
+    # 3. Just Delete
+    delete_list = [3954, 3878, 3867, 3823, 3799, 3727, 3472, 3396, 3348, 3284, 2751, 
+                   2742, 2665, 2562, 2418, 2156, 2115, 1977, 1739, 1610, 936, 632, 1281]
 
-for item in delete_list:
-    idx_number = item
-    key_value = list(dictPrinciples.keys())[list(dictPrinciples.values()).index(idx_number)]
-    del dictPrinciples[key_value]
-    key_value = list(dictPrinciplesAccented.keys())[list(dictPrinciplesAccented.values()).index(idx_number)]
-    del dictPrinciplesAccented[key_value] 
+    for item in delete_list:
+        idx_number = item
+        key_value = list(dictPrinciples.keys())[list(dictPrinciples.values()).index(idx_number)]
+        del dictPrinciples[key_value]
+        key_value = list(dictPrinciplesAccented.keys())[list(dictPrinciplesAccented.values()).index(idx_number)]
+        del dictPrinciplesAccented[key_value] 
 
-# Remove relationship
-for item in reversed(list_Names_Principles):
-    if item[1] in delete_list:
-        list_Names_Principles.remove(item)
+    # Remove relationship
+    for item in reversed(list_Names_Principles):
+        if item[1] in delete_list:
+            list_Names_Principles.remove(item)
 
 # Prepare DataFrames
 if not silent: print('ANVISA - Creating DataFrames') 
