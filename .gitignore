@@ -389,3 +389,4 @@ FodyWeavers.xsd
 /DataSources/drug
 /Exported
 /Scripts
+/DataSources/data_anvisa.csv
