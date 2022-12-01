@@ -14,7 +14,7 @@ df_interactions = pd.read_csv(exp_csv_interactions, sep=',')
 df_KEGG_interaction = pd.read_csv(exp_csv_KEGG_Interaction, sep=',')
 
 
-# Vector od KEGGDrug Ids
+# Vector of KEGGDrug Ids
 listKEGG = df_KEGGDrug_DrugBank['keggdrug-id']
 listKEGG = listKEGG.drop_duplicates()
 listKEGG.reset_index(inplace=True, drop=True)
@@ -61,6 +61,8 @@ listDrugBank_interaction.reset_index(inplace=True, drop=True)
 df_interactionsAnalysis = df_interactions
 df_interactionsAnalysis['onKEGG'] = [0] * len(df_interactionsAnalysis)
 
+df_KEGGDrug_DrugBank_Perfect = df_KEGGDrug_DrugBank[df_KEGGDrug_DrugBank['matchingValue']==1.0][['keggdrug-id','drugbank-id']]
+
 for i in range(len(df_interactionsAnalysis)):
 
 	if not silent: print('Checking DrugBank Interaction Correspondence with KEGG Drug: '+str(i)+' \r', end="")
@@ -68,8 +70,8 @@ for i in range(len(df_interactionsAnalysis)):
 	db_id1 = df_interactionsAnalysis.iloc[i,0]
 	db_id2 = df_interactionsAnalysis.iloc[i,1]
 
-	kd_id1_candidates = df_KEGGDrug_DrugBank[df_KEGGDrug_DrugBank['drugbank-id']==db_id1]
-	kd_id2_candidates = df_KEGGDrug_DrugBank[df_KEGGDrug_DrugBank['drugbank-id']==db_id2]
+	kd_id1_candidates = df_KEGGDrug_DrugBank_Perfect[df_KEGGDrug_DrugBank_Perfect['drugbank-id']==db_id1]['keggdrug-id']
+	kd_id2_candidates = df_KEGGDrug_DrugBank_Perfect[df_KEGGDrug_DrugBank_Perfect['drugbank-id']==db_id2]['keggdrug-id']
 
 	if len(kd_id1_candidates) < 1 or len(kd_id2_candidates) < 1:
 		continue
