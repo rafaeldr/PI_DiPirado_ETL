@@ -195,45 +195,36 @@ df_KEGGDrug_DrugBank.to_csv(exp_csv_KEGGDrug_DrugBank_Analysis, index = False)
 
 
 # Check: KEGG Drug Interactions that are presented in DrugBank
+if runIntersectionInteractions:
+	df_intersectionsDrugBank = df_interactions
+	df_intersectionsDrugBank['onKEGG'] = 0.0
+	#df_KEGGDrug_DrugBank_Perfect = df_KEGGDrug_DrugBank[df_KEGGDrug_DrugBank['matchingValue']==1.0][['keggdrug-id','drugbank-id']]
 
-df_interactionsAnalysis = df_interactions
-df_interactionsAnalysis['onKEGG'] = [0] * len(df_interactionsAnalysis)
+	for i in range(len(df_intersectionsDrugBank)):
+		if not silent: print('Checking DrugBank Interaction Correspondence with KEGG Drug: '+str(i+1)+' of ' + str(len(df_intersectionsDrugBank)) +' \r', end="")
 
-df_KEGGDrug_DrugBank_Perfect = df_KEGGDrug_DrugBank[df_KEGGDrug_DrugBank['matchingValue']==1.0][['keggdrug-id','drugbank-id']]
+		db_id1 = df_intersectionsDrugBank.iloc[i,0]
+		db_id2 = df_intersectionsDrugBank.iloc[i,1]
 
-for i in range(len(df_interactionsAnalysis)):
+		kd_id1_candidates = df_KEGGDrug_DrugBank[df_KEGGDrug_DrugBank['drugbank-id']==db_id1]
+		kd_id2_candidates = df_KEGGDrug_DrugBank[df_KEGGDrug_DrugBank['drugbank-id']==db_id2]
 
-	if not silent: print('Checking DrugBank Interaction Correspondence with KEGG Drug: '+str(i)+' \r', end="")
+		if len(kd_id1_candidates) < 1 or len(kd_id2_candidates) < 1:
+			continue
 
-	db_id1 = df_interactionsAnalysis.iloc[i,0]
-	db_id2 = df_interactionsAnalysis.iloc[i,1]
-
-	kd_id1_candidates = df_KEGGDrug_DrugBank_Perfect[df_KEGGDrug_DrugBank_Perfect['drugbank-id']==db_id1]['keggdrug-id']
-	kd_id2_candidates = df_KEGGDrug_DrugBank_Perfect[df_KEGGDrug_DrugBank_Perfect['drugbank-id']==db_id2]['keggdrug-id']
-
-	if len(kd_id1_candidates) < 1 or len(kd_id2_candidates) < 1:
-		continue
-
-	if len(kd_id1_candidates) > 1:
 		kd_id1 = kd_id1_candidates[kd_id1_candidates['matchingValue']==kd_id1_candidates['matchingValue'].max()].iloc[0]
-	else:
-		kd_id1 = kd_id1_candidates.iloc[0]
-
-	if len(kd_id2_candidates) > 1:
 		kd_id2 = kd_id2_candidates[kd_id2_candidates['matchingValue']==kd_id2_candidates['matchingValue'].max()].iloc[0]
-	else:
-		kd_id2 = kd_id2_candidates.iloc[0]
 
-	interaction = df_KEGG_interaction[(df_KEGG_interaction['keggdrug-id1'] == kd_id1[0]) & (df_KEGG_interaction['keggdrug-id2'] == kd_id2[0]) | 
-								   (df_KEGG_interaction['keggdrug-id1'] == kd_id2[0]) & (df_KEGG_interaction['keggdrug-id2'] == kd_id1[0])]
+		interaction = df_KEGG_interaction[(df_KEGG_interaction['keggdrug-id1'] == kd_id1[0]) & (df_KEGG_interaction['keggdrug-id2'] == kd_id2[0]) | 
+									   (df_KEGG_interaction['keggdrug-id1'] == kd_id2[0]) & (df_KEGG_interaction['keggdrug-id2'] == kd_id1[0])]
 
-	if len(interaction) == 0:
-		continue
-	else:
-		df_interactionsAnalysis.iloc[i,2] = (kd_id1[4]+kd_id2[4])/2
+		if len(interaction) == 0:
+			continue
+		else:
+			df_intersectionsDrugBank.iloc[i,2] = float(kd_id1[4]*kd_id2[4])
+	if not silent: print()
+	df_intersectionsDrugBank.to_csv(exp_csv_DrugBank_KEGGDrug_Intersection_Analysis, index = False)
 
-if not silent: print()
-print('off')
 
 
 
