@@ -7,6 +7,7 @@ silent = False
 
 # Parameters
 runCoverageInteractions = False
+runIntersectionInteractions = True
 
 # Time Tracker
 exp_csv_ComputingTime = r"..\Exported\exp_csv_ComputingTime.csv"
@@ -24,6 +25,8 @@ exp_csv_KEGGDrug_Anvisa = r"..\Exported\exp_csv_KEGGDrug_Anvisa.csv"
 exp_csv_KEGGDrug_DrugBank_Analysis = r"..\Exported\Analysis\exp_csv_KEGGDrug_DrugBank_Analysis.csv"
 exp_csv_DrugBank_Interaction_Analysis = r"..\Exported\Analysis\exp_csv_DrugBank_Interaction_Analysis.csv"
 exp_csv_KEGGDrug_Interaction_Analysis = r"..\Exported\Analysis\exp_csv_KEGGDrug_Interaction_Analysis.csv"
+exp_csv_DrugBank_KEGGDrug_Intersection_Analysis = r"..\Exported\Analysis\exp_csv_DrugBank_KEGGDrug_Intersection_Analysis.csv"
+exp_csv_KEGGDrug_DrugBank_Intersection_Analysis = r"..\Exported\Analysis\exp_csv_KEGGDrug_DrugBank_Intersection_Analysis.csv"
 
 # Load
 df_KEGGDrug_DrugBank = pd.read_csv(exp_csv_KEGGDrug_DrugBank, sep=',')
@@ -36,6 +39,9 @@ df_KEGGDrug_Anvisa = pd.read_csv(exp_csv_KEGGDrug_Anvisa, sep=',')
 if not runCoverageInteractions:
 	df_interactionsCoverageDrugBank = pd.read_csv(exp_csv_DrugBank_Interaction_Analysis, sep=',')
 	df_interactionsCoverageKEGGDrug = pd.read_csv(exp_csv_KEGGDrug_Interaction_Analysis, sep=',')
+if not runIntersectionInteractions:
+	df_intersectionsDrugBank = pd.read_csv(exp_csv_DrugBank_KEGGDrug_Intersection_Analysis, sep=',')
+	df_intersectionsKEGGDrug = pd.read_csv(exp_csv_KEGGDrug_DrugBank_Intersection_Analysis, sep=',')
 
 # Coverage Analysis (1st Level)
 list_dfs = [df_DrugBank_Anvisa, df_KEGGDrug_Anvisa, df_KEGGDrug_DrugBank]
@@ -135,9 +141,7 @@ if runCoverageInteractions:
 	if not silent: print()
 	df_interactionsCoverageKEGGDrug.to_csv(exp_csv_KEGGDrug_Interaction_Analysis, index = False)
 
-timeTracker.note(strSubject,'end')
-print()
-
+# Histograms
 list_dfs = [df_interactionsCoverageDrugBank, df_interactionsCoverageKEGGDrug]
 list_titles = ['Interactions - DrugBank (Coverage through ANVISA)',
 			   'Interactions - KEGGDrug (Coverage through ANVISA)']
@@ -187,7 +191,6 @@ for id in listKEGG:
 		df_KEGGDrug_DrugBank.drop(listIndex,inplace=True)
 		df_KEGGDrug_DrugBank.reset_index(inplace=True, drop=True)
 if not silent: print()
-
 df_KEGGDrug_DrugBank.to_csv(exp_csv_KEGGDrug_DrugBank_Analysis, index = False)
 
 
@@ -242,6 +245,6 @@ for id in listKEGG_interaction:
 		count = count + 1
 print('void')
 
-
+timeTracker.note(strSubject,'end')
 plt.show(block=True) # Deals with block = False (otherwise figures become unresponsive)
-print('end') 
+print('End of Data Analysis Module') 
