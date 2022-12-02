@@ -138,6 +138,25 @@ if runCoverageInteractions:
 timeTracker.note(strSubject,'end')
 print()
 
+list_dfs = [df_interactionsCoverageDrugBank, df_interactionsCoverageKEGGDrug]
+list_titles = ['Interactions - DrugBank (Coverage through ANVISA)',
+			   'Interactions - KEGGDrug (Coverage through ANVISA)']
+for i in range(len(list_dfs)):
+	print('### '+list_titles[i]+' ###')
+	df_perfect = list_dfs[i][list_dfs[i]['matchingValue']==1.0]
+	print('Perfect Match: '+str(len(df_perfect))+' of a total '+str(len(list_dfs[i]))+'.')
+	q_index = sum(list_dfs[i]['matchingValue'])/len(list_dfs[i])
+	print('Calculated Quality Index: '+str(q_index))
+	print()
+	# Histogram
+	plt.figure(figsize=(12, 12))
+	plt.show(block=False)
+	plt.hist(list_dfs[i]['matchingValue'], 20)
+	plt.xlim(0, 1)
+	plt.title(list_titles[i], size=20)
+	plt.xlabel("Matching Value", size=20)
+	plt.ylabel("Interactions", size=20)
+	plt.pause(0.01)
 
 
 # Vector of KEGGDrug Ids
