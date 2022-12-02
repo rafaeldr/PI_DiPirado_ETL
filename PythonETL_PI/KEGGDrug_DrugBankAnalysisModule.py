@@ -1,8 +1,18 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import utils
 
 silent = False
+
+# Parameters
+runCoverageInteractions = False
+
+# Time Tracker
+exp_csv_ComputingTime = r"..\Exported\exp_csv_ComputingTime.csv"
+timeTracker = utils.TimeTracker(exp_csv_ComputingTime)
+strSubject = 'Initializing Data Analysis Module'
+timeTracker.note(strSubject,'start')
 
 # In
 exp_csv_KEGGDrug_DrugBank = r"..\Exported\exp_csv_KEGGDrug_DrugBank.csv"
@@ -11,7 +21,9 @@ exp_csv_KEGG_Interaction = r"..\Exported\exp_csv_KEGG_Interaction.csv"
 exp_csv_DrugBank_Anvisa = r"..\Exported\exp_csv_DrugBank_Anvisa.csv"
 exp_csv_KEGGDrug_Anvisa = r"..\Exported\exp_csv_KEGGDrug_Anvisa.csv"
 # Out
-exp_csv_KEGGDrug_DrugBank_Analysis = r"..\Exported\exp_csv_KEGGDrug_DrugBank_Analysis.csv"
+exp_csv_KEGGDrug_DrugBank_Analysis = r"..\Exported\Analysis\exp_csv_KEGGDrug_DrugBank_Analysis.csv"
+exp_csv_DrugBank_Interaction_Analysis = r"..\Exported\Analysis\exp_csv_DrugBank_Interaction_Analysis.csv"
+exp_csv_KEGGDrug_Interaction_Analysis = r"..\Exported\Analysis\exp_csv_KEGGDrug_Interaction_Analysis.csv"
 
 # Load
 df_KEGGDrug_DrugBank = pd.read_csv(exp_csv_KEGGDrug_DrugBank, sep=',')
@@ -20,6 +32,10 @@ df_KEGG_interaction = pd.read_csv(exp_csv_KEGG_Interaction, sep=',')
 df_DrugBank_Anvisa = pd.read_csv(exp_csv_DrugBank_Anvisa, sep=',')
 df_KEGGDrug_Anvisa = pd.read_csv(exp_csv_KEGGDrug_Anvisa, sep=',')
 
+# Conditional Load
+if not runCoverageInteractions:
+	df_interactionsCoverageDrugBank = pd.read_csv(exp_csv_DrugBank_Interaction_Analysis, sep=',')
+	df_interactionsCoverageKEGGDrug = pd.read_csv(exp_csv_KEGGDrug_Interaction_Analysis, sep=',')
 
 # Coverage Analysis (1st Level)
 list_dfs = [df_DrugBank_Anvisa, df_KEGGDrug_Anvisa, df_KEGGDrug_DrugBank]
@@ -61,10 +77,7 @@ listKEGG_interaction = listKEGG_interaction.drop_duplicates()
 listKEGG_interaction.reset_index(inplace=True, drop=True)
 
 
-# Coverage Analysis (2nd Level)
-df_DrugBank_Anvisa['drugbank-id'].isin(listDrugBank_interaction)
-df_reach_interactions = df_DrugBank_Anvisa[df_DrugBank_Anvisa['drugbank-id'].isin(listDrugBank_interaction)]
-
+# Coverage Analysis (2nd Level) - Terms/Names
 list_dfs = [df_DrugBank_Anvisa, df_KEGGDrug_Anvisa]
 list_dfs_interactions = [listDrugBank_interaction, listKEGG_interaction]
 list_col_name = ['drugbank-id', 'keggdrug-id']
@@ -90,8 +103,40 @@ for i in range(len(list_dfs)):
 	plt.pause(0.01)
 list_dfs = list_dfs_interactions = [] # free?
 
+# Coverage Analysis (2nd Level) - Interactions
+print('### Coverage Analysis (2nd Level) - Interactions ###')
 
+# DrugBank Interactions Score Index Calculation
+if runCoverageInteractions:
+	df_interactionsCoverageDrugBank = df_interactions
+	df_interactionsCoverageDrugBank['matchingValue'] = 0.0
+	for index, row in df_interactionsCoverageDrugBank.iterrows():
+		if not silent: print('Checking Interaction: '+str(index+1)+' of ' + str(len(df_interactionsCoverageDrugBank)) + '\r', end="")
+		value1 = df_DrugBank_Anvisa[df_DrugBank_Anvisa['drugbank-id']==row['drugbank-id1']]['matchingValue']
+		value1 = float(np.mean(value1)) if len(value1)>0 else 0
+		value2 = df_DrugBank_Anvisa[df_DrugBank_Anvisa['drugbank-id']==row['drugbank-id2']]['matchingValue']
+		value2 = float(np.mean(value2)) if len(value2)>0 else 0
+		#row['matchingValue'] = float(value1 * value2) # BUG: read-only
+		df_interactionsCoverageDrugBank.at[index,'matchingValue'] = float(value1 * value2)
+	if not silent: print()
+	df_interactionsCoverageDrugBank.to_csv(exp_csv_DrugBank_Interaction_Analysis, index = False)
 
+# KEGGDrug Interactions Score Index Calculation
+if runCoverageInteractions:
+	df_interactionsCoverageKEGGDrug = df_KEGG_interaction
+	df_interactionsCoverageKEGGDrug['matchingValue'] = 0.0
+	for index, row in df_interactionsCoverageKEGGDrug.iterrows():
+		if not silent: print('Checking Interaction: '+str(index+1)+' of ' + str(len(df_interactionsCoverageKEGGDrug)) + '\r', end="")
+		value1 = df_KEGGDrug_Anvisa[df_KEGGDrug_Anvisa['keggdrug-id']==row['keggdrug-id1']]['matchingValue']
+		value1 = float(np.mean(value1)) if len(value1)>0 else 0
+		value2 = df_KEGGDrug_Anvisa[df_KEGGDrug_Anvisa['keggdrug-id']==row['keggdrug-id2']]['matchingValue']
+		value2 = float(np.mean(value2)) if len(value2)>0 else 0
+		df_interactionsCoverageKEGGDrug.at[index,'matchingValue'] = float(value1 * value2)
+	if not silent: print()
+	df_interactionsCoverageKEGGDrug.to_csv(exp_csv_KEGGDrug_Interaction_Analysis, index = False)
+
+timeTracker.note(strSubject,'end')
+print()
 
 
 
