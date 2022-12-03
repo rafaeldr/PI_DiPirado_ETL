@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import utils
 
 silent = False
+showFigures = False
 
 # Parameters
 runCoverageInteractions = False
@@ -58,14 +59,15 @@ for i in range(len(list_dfs)):
 	print('Calculated Quality Index: '+str(q_index))
 	print()
 	# Histogram
-	plt.figure(figsize=(12, 12))
-	plt.show(block=False)
-	plt.hist(list_dfs[i]['matchingValue'], 20)
-	plt.xlim(0, 1)
-	plt.title(list_titles[i], size=20)
-	plt.xlabel("Matching Value", size=20)
-	plt.ylabel("Number of Terms", size=20)
-	plt.pause(0.01)
+	if showFigures:
+		plt.figure(figsize=(12, 12))
+		plt.show(block=False)
+		plt.hist(list_dfs[i]['matchingValue'], 20)
+		plt.xlim(0, 1)
+		plt.title(list_titles[i], size=20)
+		plt.xlabel("Matching Value", size=20)
+		plt.ylabel("Number of Terms", size=20)
+		plt.pause(0.01)
 df_DrugBank_Anvisa_Perfect = perf_list[0]
 df_KEGGDrug_Anvisa_Perfect = perf_list[1]
 df_KEGGDrug_DrugBank_Perfect = perf_list[2]
@@ -99,18 +101,23 @@ for i in range(len(list_dfs)):
 	print('Calculated Quality Index: '+str(q_index))
 	print()
 	# Histogram
-	plt.figure(figsize=(12, 12))
-	plt.show(block=False)
-	plt.hist(df_reachable_interactions['matchingValue'], 20)
-	plt.xlim(0, 1)
-	plt.title(list_titles[i], size=20)
-	plt.xlabel("Matching Value", size=20)
-	plt.ylabel("Number of Terms", size=20)
-	plt.pause(0.01)
+	if showFigures:
+		plt.figure(figsize=(12, 12))
+		plt.show(block=False)
+		plt.hist(df_reachable_interactions['matchingValue'], 20)
+		plt.xlim(0, 1)
+		plt.title(list_titles[i], size=20)
+		plt.xlabel("Matching Value", size=20)
+		plt.ylabel("Number of Terms", size=20)
+		plt.pause(0.01)
 list_dfs = list_dfs_interactions = [] # free?
 
 # Coverage Analysis (2nd Level) - Interactions
 print('### Coverage Analysis (2nd Level) - Interactions ###')
+
+timeTracker.note(strSubject,'end')
+strSubject = 'Data Analysis Module - DrugBank Interactions Score Index Calculation'
+timeTracker.note(strSubject,'start')
 
 # DrugBank Interactions Score Index Calculation
 if runCoverageInteractions:
@@ -126,6 +133,10 @@ if runCoverageInteractions:
 		df_interactionsCoverageDrugBank.at[index,'matchingValue'] = float(value1 * value2)
 	if not silent: print()
 	df_interactionsCoverageDrugBank.to_csv(exp_csv_DrugBank_Interaction_Analysis, index = False)
+
+timeTracker.note(strSubject,'end')
+strSubject = 'Data Analysis Module - KEGGDrug Interactions Score Index Calculation'
+timeTracker.note(strSubject,'start')
 
 # KEGGDrug Interactions Score Index Calculation
 if runCoverageInteractions:
@@ -153,15 +164,20 @@ for i in range(len(list_dfs)):
 	print('Calculated Quality Index: '+str(q_index))
 	print()
 	# Histogram
-	plt.figure(figsize=(12, 12))
-	plt.show(block=False)
-	plt.hist(list_dfs[i]['matchingValue'], 20)
-	plt.xlim(0, 1)
-	plt.title(list_titles[i], size=20)
-	plt.xlabel("Matching Value", size=20)
-	plt.ylabel("Interactions", size=20)
-	plt.pause(0.01)
+	if showFigures:
+		plt.figure(figsize=(12, 12))
+		plt.show(block=False)
+		plt.hist(list_dfs[i]['matchingValue'], 20)
+		plt.xlim(0, 1)
+		plt.title(list_titles[i], size=20)
+		plt.xlabel("Matching Value", size=20)
+		plt.ylabel("Interactions", size=20)
+		plt.pause(0.01)
+list_dfs = list_dfs_interactions = [] # free?
 
+timeTracker.note(strSubject,'end')
+strSubject = 'Data Analysis Module - KEGGDrug to DrugBank Pairing Filter'
+timeTracker.note(strSubject,'start')
 
 # Vector of KEGGDrug Ids
 listKEGG = df_KEGGDrug_DrugBank['keggdrug-id']
@@ -193,6 +209,9 @@ for id in listKEGG:
 if not silent: print()
 df_KEGGDrug_DrugBank.to_csv(exp_csv_KEGGDrug_DrugBank_Analysis, index = False)
 
+timeTracker.note(strSubject,'end')
+strSubject = 'Data Analysis Module - Check KEGGDrug Interactions that are presented in DrugBank'
+timeTracker.note(strSubject,'start')
 
 # Check: KEGG Drug Interactions that are presented in DrugBank
 if runIntersectionInteractions:
@@ -225,17 +244,18 @@ if runIntersectionInteractions:
 	if not silent: print()
 	df_intersectionsDrugBank.to_csv(exp_csv_DrugBank_KEGGDrug_Intersection_Analysis, index = False)
 
+timeTracker.note(strSubject,'end')
+strSubject = 'Data Analysis Module - Check DrugBank Interactions that are presented in KEGGDrug'
+timeTracker.note(strSubject,'start')
 
 
-
-# Check node "trust"
-count = 0
-for id in listKEGG_interaction:
-	matchValue = df_KEGGDrug_DrugBank[df_KEGGDrug_DrugBank['keggdrug-id']==id].iloc[0,4]
-	if matchValue < 1:
-		count = count + 1
-print('void')
+## TODO
 
 timeTracker.note(strSubject,'end')
-plt.show(block=True) # Deals with block = False (otherwise figures become unresponsive)
+
+timeTracker.export() # Remove when calling from ETL main module!
+
+if showFigures:
+	print('Done! Waiting for figures to be closed...')
+	plt.show(block=True) # Deals with block = False (otherwise figures become unresponsive)
 print('End of Data Analysis Module') 

@@ -391,3 +391,4 @@ FodyWeavers.xsd
 /Scripts
 /DataSources/data_anvisa.csv
 /DataSources/exp_csv_pAtivos_Traducoes.csv
+/DataSources/drugbank_edges.csv
