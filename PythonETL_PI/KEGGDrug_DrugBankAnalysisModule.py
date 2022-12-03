@@ -217,8 +217,7 @@ timeTracker.note(strSubject,'start')
 if runIntersectionInteractions:
 	df_intersectionsDrugBank = df_interactions
 	df_intersectionsDrugBank['onKEGG'] = 0.0
-	#df_KEGGDrug_DrugBank_Perfect = df_KEGGDrug_DrugBank[df_KEGGDrug_DrugBank['matchingValue']==1.0][['keggdrug-id','drugbank-id']]
-
+	
 	for i in range(len(df_intersectionsDrugBank)):
 		if not silent: print('Checking DrugBank Interaction Correspondence with KEGG Drug: '+str(i+1)+' of ' + str(len(df_intersectionsDrugBank)) +' \r', end="")
 
@@ -248,13 +247,44 @@ timeTracker.note(strSubject,'end')
 strSubject = 'Data Analysis Module - Check DrugBank Interactions that are presented in KEGGDrug'
 timeTracker.note(strSubject,'start')
 
+# Check: DrugBank Interactions that are presented in KEGG Drug
+if runIntersectionInteractions:
+	df_intersectionsKEGGDrug = df_KEGG_interaction
+	df_intersectionsKEGGDrug['onDrugBank'] = 0.0
 
-## TODO
+	for i in range(len(df_intersectionsKEGGDrug)):
+		if not silent: print('Checking KEGGDrug Interaction Correspondence with DrugBank: '+str(i+1)+' of ' + str(len(df_intersectionsKEGGDrug)) +' \r', end="")
+
+		kd_id1 = df_intersectionsKEGGDrug.iloc[i,0]
+		kd_id2 = df_intersectionsKEGGDrug.iloc[i,1]
+
+		db_id1_candidates = df_KEGGDrug_DrugBank[df_KEGGDrug_DrugBank['keggdrug-id']==kd_id1]
+		db_id2_candidates = df_KEGGDrug_DrugBank[df_KEGGDrug_DrugBank['keggdrug-id']==kd_id2]
+
+		if len(db_id1_candidates) < 1 or len(db_id2_candidates) < 1:
+			continue
+		if len(db_id1_candidates) > 1 or len(db_id2_candidates) > 1:
+			print('Unexpected error: KEGGDrug pairing with DrugBank returned more than 1 id.')
+			exit(1)
+
+		db_id1 = int(db_id1_candidates['drugbank-id'])
+		db_id2 = int(db_id2_candidates['drugbank-id'])
+
+		interaction = df_interactions[(df_interactions['drugbank-id1'] == db_id1) & (df_interactions['drugbank-id2'] == db_id2) | 
+									   (df_interactions['drugbank-id1'] == db_id2) & (df_interactions['drugbank-id2'] == db_id1)]
+
+		if len(interaction) == 0:
+			continue
+		else:
+			db_id1_matchValue = float(db_id1_candidates['matchingValue'])
+			db_id2_matchValue = float(db_id2_candidates['matchingValue'])
+			df_intersectionsKEGGDrug.iloc[i,2] = float(db_id1_matchValue*db_id2_matchValue)
+	if not silent: print()
+	df_intersectionsKEGGDrug.to_csv(exp_csv_KEGGDrug_DrugBank_Intersection_Analysis, index = False)
 
 timeTracker.note(strSubject,'end')
 
 timeTracker.export() # Remove when calling from ETL main module!
-
 if showFigures:
 	print('Done! Waiting for figures to be closed...')
 	plt.show(block=True) # Deals with block = False (otherwise figures become unresponsive)
