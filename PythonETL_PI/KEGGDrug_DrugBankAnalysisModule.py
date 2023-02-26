@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 import utils
 
 silent = False
-showFigures = False
+showFigures = True
 
 # Parameters
-runCoverageInteractions = False
+runCoverageInteractions = True
 runIntersectionInteractions = True
 
 # Time Tracker
@@ -62,7 +62,7 @@ for i in range(len(list_dfs)):
 	if showFigures:
 		plt.figure(figsize=(12, 12))
 		plt.show(block=False)
-		plt.hist(list_dfs[i]['matchingValue'], 20)
+		plt.hist(list_dfs[i]['matchingValue'], 20, facecolor=np.random.rand(3,))
 		plt.xlim(0, 1)
 		plt.title(list_titles[i], size=20)
 		plt.xlabel("Matching Value", size=20)
@@ -104,7 +104,7 @@ for i in range(len(list_dfs)):
 	if showFigures:
 		plt.figure(figsize=(12, 12))
 		plt.show(block=False)
-		plt.hist(df_reachable_interactions['matchingValue'], 20)
+		plt.hist(df_reachable_interactions['matchingValue'], 20, facecolor=np.random.rand(3,))
 		plt.xlim(0, 1)
 		plt.title(list_titles[i], size=20)
 		plt.xlabel("Matching Value", size=20)
@@ -167,7 +167,7 @@ for i in range(len(list_dfs)):
 	if showFigures:
 		plt.figure(figsize=(12, 12))
 		plt.show(block=False)
-		plt.hist(list_dfs[i]['matchingValue'], 20)
+		plt.hist(list_dfs[i]['matchingValue'], 20, facecolor=np.random.rand(3,))
 		plt.xlim(0, 1)
 		plt.title(list_titles[i], size=20)
 		plt.xlabel("Matching Value", size=20)
