@@ -7,7 +7,7 @@ silent = False
 showFigures = True
 
 # Parameters
-runCoverageInteractions = True
+runCoverageInteractions = False
 runIntersectionInteractions = True
 
 # Time Tracker
@@ -78,17 +78,18 @@ list_dfs = perf_list = [] # free?
 listDrugBank_interaction = pd.concat([df_interactions['drugbank-id1'], df_interactions['drugbank-id2']], ignore_index=True)
 listDrugBank_interaction = listDrugBank_interaction.drop_duplicates()
 listDrugBank_interaction.reset_index(inplace=True, drop=True)
+listDrugBank_interaction.sort_values()
 
 # KEGG Ids With Described Interaction
 listKEGG_interaction = pd.concat([df_KEGG_interaction['keggdrug-id1'], df_KEGG_interaction['keggdrug-id2']], ignore_index=True)
 listKEGG_interaction = listKEGG_interaction.drop_duplicates()
 listKEGG_interaction.reset_index(inplace=True, drop=True)
-
+listKEGG_interaction.sort_values()
 
 # Coverage Analysis (2nd Level) - Terms/Names
 list_dfs = [df_DrugBank_Anvisa, df_KEGGDrug_Anvisa]
 list_dfs_interactions = [listDrugBank_interaction, listKEGG_interaction]
-list_col_name = ['drugbank-id', 'keggdrug-id']
+list_col_name = ['drugbank-id', 'keggdrug-id', 'keggdrug-id', 'drugbank-id']
 list_titles = ['Coverage Analysis (2nd Level): DrugBank X ANVISA Terms Related to Interactions',
 			   'Coverage Analysis (2nd Level): KEGGDrug X ANVISA Terms Related to Interactions']
 for i in range(len(list_dfs)):
@@ -111,6 +112,7 @@ for i in range(len(list_dfs)):
 		plt.ylabel("Number of Terms", size=20)
 		plt.pause(0.01)
 list_dfs = list_dfs_interactions = [] # free?
+
 
 # Coverage Analysis (2nd Level) - Interactions
 print('### Coverage Analysis (2nd Level) - Interactions ###')
@@ -175,6 +177,11 @@ for i in range(len(list_dfs)):
 		plt.pause(0.01)
 list_dfs = list_dfs_interactions = [] # free?
 
+
+###############################################################################
+# Phase 3 - Intersection Between DrugBank and KEGGDrug on Interaction Network #
+###############################################################################
+
 timeTracker.note(strSubject,'end')
 strSubject = 'Data Analysis Module - KEGGDrug to DrugBank Pairing Filter'
 timeTracker.note(strSubject,'start')
@@ -209,11 +216,16 @@ for id in listKEGG:
 if not silent: print()
 df_KEGGDrug_DrugBank.to_csv(exp_csv_KEGGDrug_DrugBank_Analysis, index = False)
 
+
+pass
+
+
+
 timeTracker.note(strSubject,'end')
 strSubject = 'Data Analysis Module - Check KEGGDrug Interactions that are presented in DrugBank'
 timeTracker.note(strSubject,'start')
 
-# Check: KEGG Drug Interactions that are presented in DrugBank
+# Check: KEGG Drug Interactions that are represented in DrugBank
 if runIntersectionInteractions:
 	df_intersectionsDrugBank = df_interactions
 	df_intersectionsDrugBank['onKEGG'] = 0.0
