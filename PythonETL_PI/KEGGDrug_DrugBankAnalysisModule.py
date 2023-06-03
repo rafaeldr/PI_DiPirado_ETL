@@ -217,6 +217,10 @@ if not silent: print()
 df_KEGGDrug_DrugBank.to_csv(exp_csv_KEGGDrug_DrugBank_Analysis, index = False)
 
 
+exp_csv_KEGGDrug_DrugBank_Analysis2 = r"..\Exported\Analysis\exp_csv_KEGGDrug_DrugBank_Analysis2.csv"
+df_KEGGDrug_DrugBank2 = df_KEGGDrug_DrugBank[df_KEGGDrug_DrugBank['keggdrug-id'].isin(listKEGG_interaction)]
+df_KEGGDrug_DrugBank2.to_csv(exp_csv_KEGGDrug_DrugBank_Analysis2, index = False)
+
 pass
 
 
